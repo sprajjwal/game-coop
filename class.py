@@ -1,3 +1,5 @@
+import random
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -54,25 +56,41 @@ class Player:
                 return False
         return True
 
-    def switch_card():
-        pass
-    
+    def switch_card(self, card, deck):
+        """ return card to the deck and get back another random card"""
+        assert card in self.cards
+        deck.append(card)
+        self.cards[self.cards.index(card)] = deck.pop(random.randint(0, len(deck)-1))
 
+    def kill_card(self, card):
+        """ Kills a card that player has """
+        assert card in self.cards
+        self.cards.remove(card)
 # tester class
 class Cards:
     def __init__(self, name):
         self.name = name
+class Deck:
+    def __init__(self):
+        self.deck=[]
 
 if __name__ == '__main__':
-    card1 = Cards('ambassador')
+    deck = Deck()
+    card1 = Cards('Ambassador')
     card2 = Cards('Duke')
     card3 = Cards('Assasin')
-    card4 = Cards('contessa')
+    card4 = Cards('Contessa')
+    deck.deck.append(card1)
+    deck.deck.append(card2)
+    deck.deck.append(card3)
+    deck.deck.append(card4)
     player1 = Player("shaash")
     player2 = Player("shashwat")
     player1.cards.append(card1)
     player1.cards.append(card2)
     player1.print_cards(player1.cards)
-    print(player2.contest('ambassador', player1))
-
+    player1.switch_card(player1.cards[1], deck.deck)
+    player1.print_cards(player1.cards)
+    player1.kill_card(player1.cards[1])
+    player1.print_cards(player1.cards)
 
