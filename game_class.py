@@ -1,11 +1,11 @@
 import random
-
 class Player:
     def __init__(self, name):
         self.name = name
         self.cards = []
         self.money = 2
         self.life = 2
+        self.isalive = True
 
     def use_steal(self, player):
         ''' Use captain ability on someone'''
@@ -66,31 +66,64 @@ class Player:
         """ Kills a card that player has """
         assert card in self.cards
         self.cards.remove(card)
-# tester class
-class Cards:
-    def __init__(self, name):
-        self.name = name
-class Deck:
+
+    def get_blocks(self):
+        """ returns a list of blocks the player has based on their cards """
+        return [block for card in self.cards if card.blocks for block in card.blocks]
+
+
+# Card classes
+class Ambassador:
     def __init__(self):
-        self.deck=[]
+        self.name = 'Ambassador'
+        self.is_owned = False
+        self.blocks = ['Steal']
 
-if __name__ == '__main__':
-    deck = Deck()
-    card1 = Cards('Ambassador')
-    card2 = Cards('Duke')
-    card3 = Cards('Assasin')
-    card4 = Cards('Contessa')
-    deck.deck.append(card1)
-    deck.deck.append(card2)
-    deck.deck.append(card3)
-    deck.deck.append(card4)
-    player1 = Player("shaash")
-    player2 = Player("shashwat")
-    player1.cards.append(card1)
-    player1.cards.append(card2)
-    player1.print_cards(player1.cards)
-    player1.switch_card(player1.cards[1], deck.deck)
-    player1.print_cards(player1.cards)
-    player1.kill_card(player1.cards[1])
-    player1.print_cards(player1.cards)
+class Assassin:
+    def __init__(self):
+        self.name = 'Assassin'
+        self.is_owned = False
+        self.blocks = None
 
+class Contessa:
+    def __init__(self):
+        self.name = 'Contessa'
+        self.is_owned = False
+        self.blocks = ['Assassin']
+
+class Duke:
+    def __init__(self):
+        self.name = 'Duke'
+        self.is_owned = False
+        self.blocks = ['Foreign Aid']
+
+class Captain:
+    def __init__(self):
+        self.name = 'Captain'
+        self.is_owned = False
+        self.blocks = ['Steal']
+
+class Game:
+    def __init__(self):
+        self.card_repeat = 3
+        self.deck = []
+        self.players = [] 
+
+    def fill_deck(self):
+        """ Fills the deck with cards of each class """
+        self.deck += [Ambassador()  for i in range(self.card_repeat)]
+        self.deck += [Assassin() for i in range(self.card_repeat)]
+        self.deck += [Contessa() for i in range(self.card_repeat)]
+        self.deck += [Duke() for i in range(self.card_repeat)]
+        self.deck += [Captain() for i in range(self.card_repeat)]
+        random.shuffle(self.deck)
+
+    def create_player(self):
+        """ Creates players who want to play the game """
+        for num in range(int(input("Enter number of players playing: "))):
+            self.players.append(Player(input("Enter your name: ")))
+
+    def give_cards(self, player):
+        for player in self.players:
+            player.cards.append(self.deck.pop(random.randint(0, len(self.deck))))
+            player.cards.append(self.deck.pop(random.randint(0, len(self.deck))))
