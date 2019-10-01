@@ -69,39 +69,71 @@ class Player:
 
     def get_blocks(self):
         """ returns a list of blocks the player has based on their cards """
-        return [block for card in self.cards if card.blocks for block in card.blocks]
+        return [block for card in self.cards for block in card.blocks]
+
+
+# def function(name, blocks=[]):
+#     # if blocks is None:
+#     #     blocks = []
+#     blocks.append(name)
+#     print('blocks:', blocks)
+
+# function('alan')
+# function('shaash')
 
 
 # Card classes
-class Ambassador:
-    def __init__(self):
-        self.name = 'Ambassador'
-        self.is_owned = False
-        self.blocks = ['Steal']
 
-class Assassin:
-    def __init__(self):
-        self.name = 'Assassin'
+class Influence:
+    def __init__(self, name, blocks=None):
+        self.name = name
         self.is_owned = False
-        self.blocks = None
+        if blocks == None:
+            self.blocks = []
+        else:
+            self.blocks = blocks
 
-class Contessa:
+    def __repr__(self):
+        return f"{self.name}(blocks={self.blocks})"
+
+class Ambassador(Influence):
     def __init__(self):
+        super().__init__('Ambassador', ['Steal'])
+        # self.name = 'Ambassador'
+        # self.is_owned = False
+        # self.blocks = ['Steal']
+
+class Assassin(Influence):
+    def __init__(self):
+        super().__init__('Assassin')
+        # self.name = 'Assassin'
+        # self.is_owned = False
+        # self.blocks = []
+
+class Contessa(Influence):
+    def __init__(self):
+        super.__init__('Contessa', ['Assasin'])
         self.name = 'Contessa'
         self.is_owned = False
         self.blocks = ['Assassin']
 
-class Duke:
+class Duke(Influence):
     def __init__(self):
-        self.name = 'Duke'
-        self.is_owned = False
-        self.blocks = ['Foreign Aid']
+        super().__init__('Duke', ['Foreign Aid'])
+        # self.name = 'Duke'
+        # self.is_owned = False
+        # self.blocks = ['Foreign Aid']
 
-class Captain:
+class Captain(Influence):
     def __init__(self):
-        self.name = 'Captain'
-        self.is_owned = False
-        self.blocks = ['Steal']
+        super().__init__('Captain', ['Steal'])
+        # self.name = 'Captain'
+        # self.is_owned = False
+        # self.blocks = ['Steal']
+    
+    # def __repr__(self):
+    #     return f"Captain()"
+    #     # return f"{self.name}()"
 
 class Game:
     def __init__(self):
@@ -111,11 +143,8 @@ class Game:
 
     def fill_deck(self):
         """ Fills the deck with cards of each class """
-        self.deck += [Ambassador()  for i in range(self.card_repeat)]
-        self.deck += [Assassin() for i in range(self.card_repeat)]
-        self.deck += [Contessa() for i in range(self.card_repeat)]
-        self.deck += [Duke() for i in range(self.card_repeat)]
-        self.deck += [Captain() for i in range(self.card_repeat)]
+        for Influence in [Ambassador, Assassin, Contessa, Captain, Duke]:
+            self.deck += [Influence()  for i in range(self.card_repeat)]
         random.shuffle(self.deck)
 
     def create_player(self):
@@ -123,7 +152,10 @@ class Game:
         for num in range(int(input("Enter number of players playing: "))):
             self.players.append(Player(input("Enter your name: ")))
 
-    def give_cards(self, player):
+    def draw_card(self):
+        return self.deck.pop(random.randrange(len(self.deck)))
+
+
+    def deal_cards(self):
         for player in self.players:
-            player.cards.append(self.deck.pop(random.randint(0, len(self.deck))))
-            player.cards.append(self.deck.pop(random.randint(0, len(self.deck))))
+            player.cards.extend([self.draw_card(), self.draw_card()])
