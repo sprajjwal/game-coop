@@ -1,33 +1,24 @@
 from game_class import *
 
 if __name__ == '__main__':
-    # card1 = Ambassador()
-    # card2 = Duke()
-    # card3 = Assassin()
-    # card4 = Captain()
-    # card5 = Contessa()
     player1 = Player("Alan")
-    player2 = Player("shashwat")
-    # player1.cards.append(card1)
-    # player1.cards.append(card2)
-    # player2.cards.append(card3)
-    # player2.cards.append(card4)
-    # player1.print_cards(player1.cards)
-    # player1.switch_card(player1.cards[1], deck.cards)
-    # player1.print_cards(player1.cards)
-    # player1.kill_card(player1.cards[1])
-    # player1.print_cards(player1.cards)
-    # print(player2.get_blocks())
-    game = Game()
+    player2 = Player("Shashwat")
+    game = Game(2)
     game.fill_deck()
-    # test_player= Player("Shaash")
-    game.players.append(player1)
-    game.players.append(player2)
+    game.add_player(player1)
+    game.add_player(player2)
     game.deal_cards()
-    print(player1.cards)
-    Player.print_cards(player1.cards)
-    print(player2.cards)
-    Player.print_cards(player2.cards)
-    # player2.print_cards()  # better API
-    # print(game.deck)
+    # print(player1.cards)
+    # Player.print_cards(player1.cards)
+    # print(player2.cards)
+    # Player.print_cards(player2.cards)
+    game.show_players()
+    game.show_turn_options(game.players[0])
+    print(game.players[0].money)
+
+    while game.is_playing():
+        for player in game.players:
+            game.take_turn(player)
+
+            
 
