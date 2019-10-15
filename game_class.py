@@ -7,7 +7,8 @@ class Player:
         3: 'use_duke',
         4: 'use_captain',
         5: 'use_assassin',
-        6: 'use_contessa'
+        6: 'use_ambassador',
+        7: 'print_cards'
     }
 
     def __init__(self, name):
@@ -18,7 +19,8 @@ class Player:
         self.isalive = True
 
     def use_captain(self, player):
-        ''' Use captain ability on someone'''
+        ''' Use captain ability on someone, can be blocked  by 
+        ambassador or othe captains '''
         self.money += 2
         player.money -= 2
         print(f"{self.name} stole 2 gold from {player.name}")
@@ -27,6 +29,7 @@ class Player:
 
     @staticmethod
     def print_cards(cards):
+        """ Print all the cards being passed """
         ctr = 1
         for card in cards:
             print(f"{ctr}. {card.name}")
@@ -35,30 +38,40 @@ class Player:
     def use_ambassador(self, two_cards):
         ''' choose 1 or 2 cards from self.cards + two_cards'''
         pool = self.cards + two_cards
-        self.print_cards(pool)
         self.cards = []
         for ctr in range(self.life):
-            self.cards += pool.pop(int(input(f"Choose card number {ctr+1}: "))-1)
+            print("Yourch choices are: ")
+            self.print_cards(pool)
+            self.cards.append(pool.pop(int(input(f"Choose card number {ctr+1}: "))-1))
         print(f"{self.name} switched their cards")
         return pool
         
     def use_duke(self):
+        """ Uses Duke's ability and collects 3 gold """
         print(f"{self.name} taxed 3 as a Duke!")
         self.money += 3
 
     def use_contessa(self, player):
+        """ Use Contessa's ability and save someone from getting Assasinated """
         print(f"{self.name} saved {player.name}")
 
     def use_assassin(self, player):
+        """ Use Assassin's ability and kill someone's influence """
         print(f"{self.name} assasinated {player.name}")
-        player.kill_card()
+        Player.print_cards(player.cards)
+        choice = int(input("Which card do you want to kill?: "))
+        print(f"Killing {player.cards[choice-1].name}")
+        del player.cards[choice-1]
+        print(len(player.cards))
         return 1
 
     def take_income(self):
+        """ Take one gold, can't be blocked """
         self.money += 1
         print(f"{self.name} earned 1 gold as income")
 
     def take_foreign_aid(self):
+        """ Take 2 gold, can be blocked by Duke """
         self.money += 2
         print(f"{self.name} earned 2 gold as Foreign Aid!")
 
@@ -77,11 +90,6 @@ class Player:
         deck.append(card)
         self.cards[self.cards.index(card)] = deck.pop(random.randint(0, len(deck)-1))
 
-    def kill_card(self, card):
-        """ Kills a card that player has """
-        assert card in self.cards
-        self.cards.remove(card)
-
     def get_blocks(self):
         """ returns a list of blocks the player has based on their cards """
         return [block for card in self.cards for block in card.blocks]
@@ -91,6 +99,7 @@ class Player:
 # Card classes
 
 class Influence:
+    """ Main game class class that is inherited by all influence types """
     def __init__(self, name, blocks=None):
         self.name = name
         self.is_owned = False
@@ -122,13 +131,14 @@ class Captain(Influence):
         super().__init__('Captain', ['Steal'])
 
 class Game:
-    turn_options = {
+    turn_options = { # shows all posible actions a person can take
         1: "Take Income",
         2: "Take Foreign Aid",
         3: "Use Duke's ability", 
         4: "Use steal as Captain",
         5: "Assassinate someone as assassin",
-        6: "switch cards as Ambassador"
+        6: "Switch cards as Ambassador",
+        7: "Show my cards"
     }
     def __init__(self, num_players):
         self.card_repeat = 3
@@ -142,10 +152,10 @@ class Game:
             self.deck += [Influence()  for i in range(self.card_repeat)]
         random.shuffle(self.deck)
 
-    def create_player(self):
+    def create_players(self):
         """ Creates players who want to play the game """
-        for num in range(int(input("Enter number of players playing: "))):
-            self.players.append(Player(input("Enter your name: ")))
+        for num in range(self.alive_players):
+            self.players.append(Player(input(f"Enter your name player {num+1}: ")))
 
     def draw_card(self):
         return self.deck.pop(random.randrange(len(self.deck)))
@@ -158,19 +168,23 @@ class Game:
         self.players.append(player)
     
     def is_playing(self):
-        ct = 1
+        ct = 0
         for player in self.players:
             if len(player.cards) > 0:
                 ct += 1
-        return ct>=2
+        return ct > 1
 
-    def show_players(self, not_show = None):
+    def show_players_get_input(self, not_show = None):
         print("- - - " * 7)
         ctr = 1
+        players=[]
         for player in self.players:
-            if not player.name == not_show:
+            if  player.name != not_show:
                 print(f"{ctr}. {player.name}")
+                players.append(player)
                 ctr += 1
+        against = int(input("Enter user to use ability on: ")) -1
+        return self.players.index(players[against])
 
     @staticmethod
     def show_turn_options(player):
@@ -179,33 +193,52 @@ class Game:
             print(f"{num}. {action}")
 
     def choose_action(self, player):
-        os.system('clear')
-        Game.show_turn_options(player)
+        # 
         turn_option = int(input("Which action do you want to make?: "))
         return turn_option
 
     def take_turn(self, player):
+        os.system('clear')
+        Game.show_turn_options(player)
         while True:
+            print("- - - " * 7)
             turn_option = self.choose_action(player)
             if turn_option in range(1, 4):
-                print("in if")
                 turn_function = getattr(player, Player.turn_function_names[turn_option])
                 turn_function()
                 break
-            elif turn_option in range(4, 7):
-                if turn_option in range(4, 6):
-                    turn_function = getattr(player, Player.turn_function_names[turn_option])
-                    while True:
-                        self.show_players(player.name)
-                        against = int(input("Enter user to use ability on: "))
-                        if turn_function(self.players[against-1]) == 1:
+            elif turn_option in range(4, 8): # functions that need arguments
+                if turn_option == 4: # Steal
+                        index = self.show_players_get_input(player.name)
+                        if self.players[index].money < 2:
+                            print(f"{self.players[index].name} doesn't have enough money. Try again!")
+                        else:
+                            turn_function = getattr(player, Player.turn_function_names[turn_option])
+                            turn_function(self.players[index])
                             break
-                else:
-                    turn_function = getattr(player, Player.turn_function_names[turn_option])
+                elif turn_option == 5: # assassinate, requires atleast 3 gold
+                    if player.money < 3:
+                        print("Not enough gold, use a different ability")
+                    else:
+                        turn_function = getattr(player, Player.turn_function_names[turn_option])
+                        index = self.show_players_get_input(player.name)
+                        turn_function(self.players[index])
+                        break
+                elif turn_option == 6: # switching cards
                     two_cards = []
-                    two_cards += self.deck.pop(random.randint(0, len(self.deck)-1))
-                    two_cards += self.deck.pop(random.randint(0, len(self.deck)-1))
+                    two_cards.append(self.deck.pop(random.randint(0, len(self.deck)-1)))
+                    two_cards.append(self.deck.pop(random.randint(0, len(self.deck)-1)))
+                    turn_function = getattr(player, Player.turn_function_names[turn_option])
                     self.deck += turn_function(two_cards)
                     random.shuffle(self.deck)
-                break
+                    break
+                elif turn_option == 7: # showing cards
+                    Player.print_cards(player.cards)
+            else:
+                print("Incorrect input!")
+
+    def get_winner(self):
+        for player in self.players:
+            if player.cards:
+                return player
 

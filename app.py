@@ -1,24 +1,20 @@
 from game_class import *
+import time
 
 if __name__ == '__main__':
-    player1 = Player("Alan")
-    player2 = Player("Shashwat")
-    game = Game(2)
+    num_players = int(input("How many people are playing? "))
+    game = Game(num_players)
+    game.create_players()
     game.fill_deck()
-    game.add_player(player1)
-    game.add_player(player2)
     game.deal_cards()
-    # print(player1.cards)
-    # Player.print_cards(player1.cards)
-    # print(player2.cards)
-    # Player.print_cards(player2.cards)
-    game.show_players()
-    game.show_turn_options(game.players[0])
-    print(game.players[0].money)
 
-    while game.is_playing():
+    while True:
         for player in game.players:
             game.take_turn(player)
+            time.sleep(1)
+            if not game.is_playing():
+                print("Game over")
+                print(f"{self.get_winner().name}won!")
+                exit()
 
-            
 
