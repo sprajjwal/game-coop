@@ -183,7 +183,7 @@ class Game:
                 print(f"{ctr}. {player.name}")
                 players.append(player)
                 ctr += 1
-        against = int(input("Enter user to use ability on: ")) -1
+        against = int(input("Enter user number to use ability on: ")) -1
         return self.players.index(players[against])
 
     @staticmethod
@@ -196,6 +196,16 @@ class Game:
         # 
         turn_option = int(input("Which action do you want to make?: "))
         return turn_option
+
+    def stop_assassination(self, assassin, victim):
+        block = input("Does anyone want to use contessa?(Y/N) ")
+        if block in "Yy":
+            self.players[contessa_index].use_contessa(victim)
+            return True
+        else:
+            return False
+
+        
 
     def take_turn(self, player):
         os.system('clear')
@@ -222,7 +232,8 @@ class Game:
                     else:
                         turn_function = getattr(player, Player.turn_function_names[turn_option])
                         index = self.show_players_get_input(player.name)
-                        turn_function(self.players[index])
+                        if not self.stop_assassination(player, self.players[index]):
+                            turn_function(self.players[index])
                         break
                 elif turn_option == 6: # switching cards
                     two_cards = []
