@@ -322,7 +322,7 @@ class Game:
     def get_winner(self):
         """ Gets the player who has atleast 1 card alive """
         for player in self.players:
-            if player.cards:
+            if player.is_alive:
                 return player
 
     def contest_action(self, player, card_name):
