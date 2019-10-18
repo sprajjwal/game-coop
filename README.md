@@ -26,7 +26,7 @@ The Ambassador also has 2 abilities:
 
 
 # How to play:
-The game starts with a prompt asking how many people are trying to play and what are their names. Once this is done, the game starts, everyone in order of names they entered see a screen with possible actions and gold they have. Since only a player gets to see what influences they have, they can pretend to have any influence and use any abilitiy. This however gives a chance to others to contest the palyer whether they have the card or not. 
-In case of contest, if the player doesn't have the influence, the action doesn't go through and the player has to kill one of it's influence. However, if the player did have the influence they claimed to have, the contestor looses an influence and the action goes through.
+The game starts with a prompt asking how many people are trying to play and what are their names. Once this is done, the game starts, everyone in order of names they entered see a screen with possible actions and gold they have. Since only a player gets to see what influences they have, they can pretend to have any influence and use any abilitiy. This however gives a chance to others to contest the palyer whether they have the card or not. <br/>
+In case of contest, if the player doesn't have the influence, the action doesn't go through and the player has to kill one of it's influence. However, if the player did have the influence they claimed to have, the contestor looses an influence and the action goes through.<br/>
 Every player can see their cards during their turn without loosing their turn.
 Also, based on the above mentioned rules, actions can be stopped or challenged.
