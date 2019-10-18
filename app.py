@@ -16,10 +16,10 @@ if __name__ == '__main__':
         for player in game.players:
             if len(player.cards) > 0:
                 game.take_turn(player)
-                time.sleep(2)
+                time.sleep(3)
                 if not game.is_playing():
-                    print("Game over")
-                    print(f"{self.get_winner().name}won!")
+                    print("Game over!")
+                    print(f"{game.get_winner().name} won!")
                     exit()
 
 

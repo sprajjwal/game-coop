@@ -8,7 +8,8 @@ class Player:
         4: 'use_captain',
         5: 'use_assassin',
         6: 'use_ambassador',
-        7: 'print_cards'
+        7: 'print_cards',
+        8: 'coup_player'
     }
 
     def __init__(self, name):
@@ -53,21 +54,20 @@ class Player:
 
     def use_ambassador(self, two_cards):
         ''' choose 1 or 2 cards from self.cards + two_cards'''
+        print("- - - " * 7)
         pool = self.cards + two_cards
         self.cards = []
         for ctr in range(self.life):
             print("Your choices are: ")
             self.print_cards(pool)
             self.cards.append(pool.pop(int(input(f"Choose card number {ctr+1}: "))-1))
-        print(f"{self.name} switched their cards")
+        print(f"{self.name} switched their cards.")
         return pool
 
     def use_assassin(self, player):
         """ Use Assassin's ability and kill someone's influence """
         print(f"{self.name} assasinated {player.name}.")
-        Player.print_cards(player.cards)
-        choice = int(input("Which card do you want to kill?: "))
-        print(f"Killing {player.cards[choice-1].name}.")
+        player.loose_life()
         del player.cards[choice-1]
         player.life -= 1
         return 1
@@ -75,6 +75,11 @@ class Player:
     def use_contessa(self, player):
         """ Use Contessa's ability and save someone from getting Assasinated """
         print(f"{self.name} saved {player.name}.")
+
+    def coup_player(self, player):
+        """Let's player Coup someone """
+        self.money -= 7
+        player.loose_life()
 
     def contest(self, card_type, deck):
         ''' check if player was bs'ing and didn't have card_type '''
@@ -107,7 +112,7 @@ class Player:
     def loose_life(self):
         """Processes the i/o for a player to choose which card to kill"""
         if self.life == 1:
-            print(f"You only had {self.cards[0].name}.")
+            print(f"You only had {self.cards[0].name}, {self.name}.")
             print(f"Killing {self.cards[0].name}.")
             self.cards = []
             self.life = 0
@@ -173,7 +178,8 @@ class Game:
         4: "Use steal as Captain",
         5: "Assassinate someone as assassin",
         6: "Switch cards as Ambassador",
-        7: "Show my cards"
+        7: "Show my cards",
+        8: "Coup a player"
     }
     def __init__(self, num_players):
         self.card_repeat = round((num_players*2 +7)/5)
@@ -209,7 +215,7 @@ class Game:
                 ct += 1
         return ct > 1
 
-    def show_players_get_input(self, task, not_show = None):
+    def show_players_get_input(self, task, not_show_name1 = None, not_show_name2 = None):
         """ shows all the player other than not_show and asks which player wants to do the task.
         returns index of the player in self.players"""
         print("- - - " * 7)
@@ -217,7 +223,7 @@ class Game:
         players=[]
         while True:
             for player in self.players:
-                if  player.name != not_show and player.is_alive:
+                if  player.name != not_show_name1 and player.is_alive and player.name != not_show_name2:
                     print(f"{ctr}. {player.name}")
                     players.append(player)
                     ctr += 1
@@ -234,13 +240,13 @@ class Game:
         for num, action in Game.turn_options.items():
             print(f"{num}. {action}")
 
-    def choose_action(self, player): 
+    def choose_action(self, player, end): 
         """ Input validation on action a player can make """
         while True:
             turn_option = input("Which action do you want to make?: ")
             if turn_option.isdigit():
                 turn_option = int(turn_option)
-                if turn_option > 0 and turn_option <= 7 :
+                if turn_option > 0 and turn_option <= end :
                     return int(turn_option)
 
     def stop_assassination(self, assassin, victim):
@@ -264,58 +270,62 @@ class Game:
         Game.show_turn_options(player)
         while True:
             print("- - - " * 7)
-            turn_option = self.choose_action(player)
-            if turn_option in range(1, 4):
-                turn_function = getattr(player, Player.turn_function_names[turn_option])
-                if turn_option == 3:
-                    contest_val = self.contest_action(player, Game.game_classes[turn_option])
-                    if contest_val == False:
-                        print(f"Executing Duke's ability.")
-                        turn_function()
-                    break
-                else:
-                    print(f"Executing {Game.turn_options[turn_option]}.")
+            turn_option = self.choose_action(player, 8)
+            turn_function = getattr(player, Player.turn_function_names[turn_option])
+            if turn_option == 1: #take income
+                turn_function()
+                print(f"Executing {Game.turn_options[turn_option]}.")
+                break
+            elif turn_option == 2: # take foreign aid
+                if not self.block_foreign_aid(player):
                     turn_function()
-                    break
-            elif turn_option in range(4, 8): # functions that need arguments
-                if turn_option == 4: # Steal
-                        index = self.show_players_get_input("to steal from", player.name)
-                        contest_val = self.contest_action(player, Game.game_classes[turn_option])
-                        if self.players[index].money < 2:
-                            print(f"{self.players[index].name} doesn't have enough money. Try again!")
-                        elif contest_val == False:
-                            turn_function = getattr(player, Player.turn_function_names[turn_option])
-                            print(f"Executing steal on {self.players[index].name}.")
-                            turn_function(self.players[index])
-                            break
-                        else: # contest successful
-                            break
-                elif turn_option == 5: # assassinate, requires atleast 3 gold
-                    if player.money < 3:
-                        print("Not enough gold, use a different ability.")
+                    print(f"Executing {Game.turn_options[turn_option]}.")
+                else:
+                    print(f"Your foreign aid was blocked {player.name}")
+                break
+            elif turn_option == 3:
+                contest_val = self.contest_action(player, Game.game_classes[turn_option])
+                if contest_val == False:
+                    print(f"Executing Duke's ability.")
+                    turn_function()
+                break
+            elif turn_option == 4:
+                index = self.show_players_get_input("to steal from", player.name)
+                contest_val = self.contest_action(player, Game.game_classes[turn_option])
+                if self.players[index].money < 2:
+                    print(f"{self.players[index].name} doesn't have enough money. Try again!")
+                elif not contest_val:
+                    blocked = self.block_steal(player)
+                    if not blocked:
+                        # turn_function = getattr(player, Player.turn_function_names[turn_option])
+                        print(f"Executing steal on {self.players[index].name}.")
+                        turn_function(self.players[index])
                     else:
-                        turn_function = getattr(player, Player.turn_function_names[turn_option])
-                        index = self.show_players_get_input("to assassinate", player.name)
-                        contest_val = self.contest_action(player, Game.game_classes[turn_option])
-                        if contest_val == False:
-                            print(f"{player.name} did have {Game.game_classes[turn_option]}.")
-                            if not self.stop_assassination(player, self.players[index]):
-                                print(f"Executing assassination on {self.players[index].name}.")
-                                turn_function(self.players[index])
-                        break
-                elif turn_option == 6: # switching cards
-                    contest_val = self.contest_action(player, Game.game_classes[turn_option])
-                    if contest_val == False:
-                        print(f"Executing ambassador's ability.")
-                        two_cards = []
-                        two_cards.append(self.deck.pop(random.randint(0, len(self.deck)-1)))
-                        two_cards.append(self.deck.pop(random.randint(0, len(self.deck)-1)))
-                        turn_function = getattr(player, Player.turn_function_names[turn_option])
-                        self.deck += turn_function(two_cards)
-                        random.shuffle(self.deck)
+                        print(f"Your steal was blocked {player.name}.")
                     break
-                elif turn_option == 7: # showing cards
-                    Player.print_cards(player.cards)
+                else: # contest successful
+                    break
+            elif turn_option == 5:
+                if player.money < 3:
+                    print("Not enough gold, use a different ability.")
+                else:
+                    index = self.show_players_get_input("to assassinate", player.name)
+                    contest_val = self.contest_action(player, Game.game_classes[turn_option])
+                    if not contest_val:
+                        if not self.stop_assassination(player, self.players[index]):
+                            print(f"Executing assassination on {self.players[index].name}.")
+                            turn_function(self.players[index])
+                    break
+            elif turn_option == 7:
+                Player.print_cards(player.cards)
+            elif turn_option == 8:
+                if player.money < 7:
+                    print(f"Sorry {player.name}, you don't have enough money.")
+                else:
+                    # turn_function = getattr(player, Player.turn_function_names[turn_option])
+                    index = self.show_players_get_input("to Coup", player.name)
+                    turn_function(self.players[index])
+                    break
             else:
                 print("Incorrect input!")
 
@@ -331,7 +341,7 @@ class Game:
         if player has card, returns false
         if player doesn't have card, returns True """
         while True:
-            is_contest = input("Does anyone want to contest?(Y/N): ")
+            is_contest = input(f"Does anyone want to contest the {card_name}?(Y/N): ")
             if is_contest in "YyNn":
                 break
         if is_contest in "Nn":
@@ -349,3 +359,37 @@ class Game:
                 print(f"You failed the contest {player.name}.You didn't have {card_name}.")
                 player.loose_life()
                 return True
+
+    def block_steal(self, player):
+        print("- - - " * 7)
+        block = input(f"Does anyone want to block {player.name}'s steal?(Y/N) ")
+        if block in "Yy":
+            index = self.show_players_get_input("who wants to block steal", player.name)
+            print("Who do you want to block as:")
+            print("1. Captain")
+            print("2. Ambassador")
+            option = self.choose_action(self.players[index], 2)
+            if option == 1:
+                influence = "Captain"
+            else:
+                influence = "Ambassador"
+            is_contest = self.contest_action(self.players[index], influence)
+            if is_contest == -1 or not is_contest:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def block_foreign_aid(self, player):
+        print("- - - " * 7)
+        block = input(f"Does anyone want to block {player.name} taking foreign aid?(Y/N) ")
+        if block in "Yy":
+            index = self.show_players_get_input(f"who wants to block {player.name}'s foreign aid", player.name)
+            is_contest = self.contest_action(self.players[index], "Duke")
+            if is_contest == -1 or not is_contest:
+                return True
+            else:
+                return False
+        else:
+            return False

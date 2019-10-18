@@ -106,7 +106,10 @@ class GameTest(TestCase):
 
     def test_get_winner(self):
         """Tests if the correct person is winning"""
-        self.game.players
+        self.game.players[0].is_alive = False
+        self.game.players[2].is_alive = False
+        winner = self.game.get_winner()
+        assert winner.name == "Player 2"
 
 
 
