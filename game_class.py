@@ -283,13 +283,13 @@ class Game:
                 else:
                     print(f"Your foreign aid was blocked {player.name}")
                 break
-            elif turn_option == 3:
+            elif turn_option == 3: # Duke's tax
                 contest_val = self.contest_action(player, Game.game_classes[turn_option])
                 if contest_val == False:
                     print(f"Executing Duke's ability.")
                     turn_function()
                 break
-            elif turn_option == 4:
+            elif turn_option == 4: # stealing
                 index = self.show_players_get_input("to steal from", player.name)
                 contest_val = self.contest_action(player, Game.game_classes[turn_option])
                 if self.players[index].money < 2:
@@ -305,7 +305,7 @@ class Game:
                     break
                 else: # contest successful
                     break
-            elif turn_option == 5:
+            elif turn_option == 5: # assassination
                 if player.money < 3:
                     print("Not enough gold, use a different ability.")
                 else:
@@ -316,9 +316,9 @@ class Game:
                             print(f"Executing assassination on {self.players[index].name}.")
                             turn_function(self.players[index])
                     break
-            elif turn_option == 7:
+            elif turn_option == 7: # show all cards
                 Player.print_cards(player.cards)
-            elif turn_option == 8:
+            elif turn_option == 8: # Coup a player
                 if player.money < 7:
                     print(f"Sorry {player.name}, you don't have enough money.")
                 else:
